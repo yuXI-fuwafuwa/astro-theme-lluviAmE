@@ -1,0 +1,132 @@
+---
+import type { MarkdownHeading } from 'astro';
+import TOCItem, { type TocItem } from './TOCItem.astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+function buildToc(headings: MarkdownHeading[]) {
+  const toc: TocItem[] = [];
+  const parentHeadings = new Map();
+  
+  headings.forEach((h) => {
+    const heading: TocItem = { ...h, subheadings: [] };
+    parentHeadings.set(heading.depth, heading);
+    
+    if (heading.depth === 2) {
+      toc.push(heading);
+    } else {
+      let parent = parentHeadings.get(heading.depth - 1);
+      // Fallback for skipped levels (e.g. h2 -> h4)
+      if (!parent) {
+        parent = parentHeadings.get(heading.depth - 2);
+      }
+      
+      if (parent) {
+        parent.subheadings.push(heading);
+      } else {
+        toc.push(heading);
+      }
+    }
+  });
+  return toc;
+}
+
+const tocTree = buildToc(headings.filter(h => h.depth > 1));
+---
+
+{tocTree.length > 0 && (
+  <nav class="toc-container">
+    <div class="toc-title">Table of Contents</div>
+    <ul class="toc-root-list">
+      {tocTree.map((item) => (
+        <TOCItem item={item} />
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style is:global>
+  .toc-container {
+    margin: 2rem 0;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg);
+  }
+  
+  /* According to requirement: 与正文内容有明显的分割线 */
+  .toc-container {
+    border-left: 4px solid var(--color-border);
+  }
+
+  .toc-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .toc-root-list, .toc-sublist {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  .toc-sublist {
+    padding-left: 1.2rem;
+  }
+  .toc-item {
+    margin-top: 0.3rem;
+  }
+  .toc-link-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .toc-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    color: var(--color-text);
+    transition: transform 0.2s ease;
+  }
+  .toc-toggle[aria-expanded="false"] .toc-arrow {
+    transform: rotate(-90deg);
+  }
+  .toc-spacer {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+  }
+  .toc-sublist.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  function setupToc() {
+    const toggles = document.querySelectorAll('.toc-toggle');
+    toggles.forEach(toggle => {
+      // Remove old listeners just in case
+      const newToggle = toggle.cloneNode(true);
+      toggle.parentNode?.replaceChild(newToggle, toggle);
+      
+      newToggle.addEventListener('click', (e) => {
+        const btn = e.currentTarget as HTMLButtonElement;
+        const wrapper = btn.closest('.toc-item');
+        const sublist = wrapper?.querySelector('.toc-sublist');
+        
+        if (sublist) {
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', (!isExpanded).toString());
+          sublist.classList.toggle('hidden');
+        }
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupToc);
+</script>

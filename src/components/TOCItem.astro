@@ -1,0 +1,34 @@
+---
+export interface TocItem {
+  depth: number;
+  slug: string;
+  text: string;
+  subheadings: TocItem[];
+}
+
+interface Props {
+  item: TocItem;
+}
+
+const { item } = Astro.props;
+---
+
+<li class="toc-item">
+  <div class="toc-link-wrapper">
+    {item.subheadings.length > 0 ? (
+      <button class="toc-toggle" aria-expanded="true" aria-label="Toggle subsection">
+        <svg viewBox="0 0 24 24" width="12" height="12" class="toc-arrow"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+      </button>
+    ) : (
+      <span class="toc-spacer"></span>
+    )}
+    <a href={`#${item.slug}`}>{item.text}</a>
+  </div>
+  {item.subheadings.length > 0 && (
+    <ul class="toc-sublist">
+      {item.subheadings.map((subitem) => (
+        <Astro.self item={subitem} />
+      ))}
+    </ul>
+  )}
+</li>
