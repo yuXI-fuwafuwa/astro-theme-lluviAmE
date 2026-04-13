@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { createPageTitle, getPublishedPosts, themeConfig } from '../../lib/theme.js';
+
+export async function getStaticPaths() {
+  const allPosts = getPublishedPosts(await getCollection('blog'));
+  const uniqueTags = [...new Set(
+    allPosts.flatMap((post: CollectionEntry<'blog'>) => post.data.tags),
+  )];
+
+  return uniqueTags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: allPosts.filter((post: CollectionEntry<'blog'>) => post.data.tags.includes(tag)),
+    },
+  }));
+}
+
+interface Props {
+  tag: string;
+  posts: CollectionEntry<'blog'>[];
+}
+
+const { tag, posts } = Astro.props as Props;
+---
+
+<BaseLayout
+  title={createPageTitle(`#${tag}`)}
+  description={`${themeConfig.labels.postsTaggedWith} "${tag}"`}
+>
+  <h1>{themeConfig.labels.postsTaggedWith} "{tag}"</h1>
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li>
+        <span class="post-date">
+          {post.data.date.toISOString().slice(0, 10)}
+        </span>
+        <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .post-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 2rem;
+  }
+
+  .post-list li {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .post-date {
+    font-size: 0.9rem;
+    color: var(--color-border);
+    white-space: nowrap;
+  }
+</style>

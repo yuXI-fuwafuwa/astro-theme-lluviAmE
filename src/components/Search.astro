@@ -3,36 +3,58 @@
 <div id="search" class="search-container"></div>
 
 <script>
-  function initPagefind() {
-    const searchDiv = document.getElementById('search');
-    if (!searchDiv) return;
-    
-    // Check if we already initialized
-    if (searchDiv.innerHTML !== '') return;
+  type PagefindUIConstructor = new (options: {
+    element: string;
+    showSubResults: boolean;
+  }) => unknown;
 
-    // Load pagefind CSS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = '/pagefind/pagefind-ui.css';
-    document.head.appendChild(link);
-
-    // Load pagefind JS
-    const script = document.createElement('script');
-    script.src = '/pagefind/pagefind-ui.js';
-    script.onload = () => {
-      // @ts-ignore
-      if (window.PagefindUI) {
-        // @ts-ignore
-        new window.PagefindUI({
-          element: '#search',
-          showSubResults: true,
-        });
-      }
+  function mountSearch() {
+    const pagefindWindow = window as Window & typeof globalThis & {
+      PagefindUI?: PagefindUIConstructor;
     };
-    document.head.appendChild(script);
+
+    if (!pagefindWindow.PagefindUI) return;
+
+    const searchDiv = document.getElementById('search');
+    if (!searchDiv || searchDiv.innerHTML !== '') return;
+
+    new pagefindWindow.PagefindUI({
+      element: '#search',
+      showSubResults: true,
+    });
   }
 
-  // Initialize on both direct load and view transitions
+  function initPagefind() {
+    const pagefindWindow = window as Window & typeof globalThis & {
+      PagefindUI?: PagefindUIConstructor;
+    };
+
+    if (pagefindWindow.PagefindUI) {
+      mountSearch();
+      return;
+    }
+
+    if (!document.querySelector('link[data-pagefind-ui]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/pagefind/pagefind-ui.css';
+      link.dataset.pagefindUi = 'true';
+      document.head.appendChild(link);
+    }
+
+    const existingScript = document.querySelector('script[data-pagefind-ui]');
+    if (!(existingScript instanceof HTMLScriptElement)) {
+      const script = document.createElement('script');
+      script.src = '/pagefind/pagefind-ui.js';
+      script.dataset.pagefindUi = 'true';
+      script.addEventListener('load', mountSearch, { once: true });
+      document.head.appendChild(script);
+      return;
+    }
+
+    existingScript.addEventListener('load', mountSearch, { once: true });
+  }
+
   document.addEventListener('astro:page-load', initPagefind);
 </script>
 

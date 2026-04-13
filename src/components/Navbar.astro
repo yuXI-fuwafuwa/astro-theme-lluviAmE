@@ -1,21 +1,28 @@
 ---
+import { themeConfig } from '../runtime/lib/theme.js';
 ---
 <header class="navbar">
   <div class="navbar-inner">
     <nav class="nav-links">
-      <a href="/">Home</a>
+      <a href="/">{themeConfig.labels.home}</a>
       <span class="separator">|</span>
-      <a href="/blog">Blog</a>
+      <a href="/blog/">{themeConfig.labels.blog}</a>
       <span class="separator">|</span>
-      <a href="/tags">Tags</a>
+      <a href="/tags/">{themeConfig.labels.tags}</a>
     </nav>
     <div class="nav-right">
-      <button id="theme-toggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
+      <button
+        id="theme-toggle"
+        aria-label={themeConfig.labels.toggleTheme}
+        title={themeConfig.labels.toggleTheme}
+      >
         <span class="theme-icon light-icon">☼</span>
         <span class="theme-icon dark-icon">☾</span>
       </button>
       <span class="separator">|</span>
-      <a href="#" class="back-to-top" aria-label="Back to Top">Top ↑</a>
+      <a href="#" class="back-to-top" aria-label={themeConfig.labels.backToTop}>
+        {themeConfig.labels.backToTop}
+      </a>
     </div>
   </div>
 </header>

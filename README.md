@@ -1,133 +1,194 @@
 # Astro Theme: LluviAmE
 
-LluviAmE 是一个追求视觉轻量化的 Astro 主题  
+## 简介
 
----
+LluviAmE 是一个偏极简、以阅读和写作为中心的 Astro 博客主题。安装后会直接提供这些页面：
 
-## 使用教程
+- `/`
+- `/blog/`
+- `/blog/[id]/`
+- `/tags/`
+- `/tags/[tag]/`
+- `/rss.xml`
 
-克隆该项目，并安装依赖  
+主题内置：
+
+- 深浅色模式
+- 标签页
+- RSS
+- Sitemap
+- Pagefind 搜索
+
+## 安装
+
+先安装主题包：
+
 ```sh
-npm install
-``` 
+npm install astro-theme-lluviame
+```
 
-所有的博客文章都存放在 `src/content/blog/` 目录下，支持 `.md` 和 `.mdx` 格式  
+在 `astro.config.mjs` 中启用主题：
 
-Markdown 文件需要在文件顶部添加 Frontmatter 元数据   
+```js
+import { defineConfig } from 'astro/config';
+import lluviame from 'astro-theme-lluviame';
 
-```markdown
+export default defineConfig({
+  site: 'https://your-domain.com',
+  integrations: [
+    lluviame({
+      title: '你的站点名',
+      description: '你的站点描述',
+      lang: 'zh-CN',
+      ogImage: '/og-image.png',
+      home: {
+        headline: '你好，我是 ...',
+        intro: '这里写首页简介。',
+        links: [
+          { text: 'GitHub', href: 'https://github.com/your-name' },
+          { text: 'X', href: 'https://x.com/your-name' },
+        ],
+      },
+    }),
+  ],
+});
+```
+
+在 `src/content.config.ts` 中注册博客内容集合：
+
+```ts
+import { blogCollection } from 'astro-theme-lluviame/content';
+
+export const collections = {
+  blog: blogCollection(),
+};
+```
+
+把文章放到 `src/content/blog/` 下，然后运行：
+
+```sh
+npm run dev
+```
+
+## 你现在可以做什么
+
+### 修改站点信息
+
+可以在 `astro.config.mjs` 中修改这些内容：
+
+- `title`
+- `description`
+- `lang`
+- `ogImage`
+- `home.headline`
+- `home.intro`
+- `home.links`
+
+### 编写和管理文章
+
+文章放在 `src/content/blog/` 下，支持 `.md` 和 `.mdx`。主题会读取这些 frontmatter 字段：
+
+- `title`
+- `description`
+- `date`
+- `tags`
+- `draft`
+- `image`
+
+示例：
+
+```md
 ---
-title: "哈基米"
-date: 1234-01-16
+title: "文章标题"
+description: "文章摘要"
+date: 2026-04-14
 tags: ["随笔", "Astro"]
 draft: false
-
+image: "./cover.png"
 ---
-
-这是我的第一篇文章内容...
 ```
 
-推荐使用 git submodule 管理文章内容，便于无痛切换博客主题  
-```bash
-# 删除默认的空目录
-rm -rf src/content/blog
+### 让文章仓库独立出来
 
-# 添加你自己的文章仓库作为 submodule
-git submodule add https://你的文章仓库.git src/content/blog
-```
+如果你想把文章仓库作为 Git submodule 挂到主题项目里，推荐直接挂到 `src/content/blog/`。  
+文章和文章使用的图片可以放在同一个仓库里，一起迁移和维护。
 
-准备好发布时运行构建命令  
-```sh
-npm run build
-```
+### 扩展 frontmatter
 
-你能在 `dist/` 文件夹下看到你的静态页面  
+可以在自己的 `src/content.config.ts` 中扩展 schema。  
+但主题内部当前只会读取：
 
----
+- `title`
+- `description`
+- `date`
+- `tags`
+- `draft`
+- `image`
 
-## 项目说明
+新增字段可以被校验和存储，但不会自动显示到页面上。
 
-### 目录结构
+## 关于图片
+
+图片分成两类：
+
+- `ogImage`：全站默认分享图
+- `image`：单篇文章的分享图
+
+它们当前会用于：
+
+- `og:image`
+- `twitter:image`
+- 链接分享预览
+
+它们当前不会自动显示成文章封面图。
+
+### 文章图片怎么放
+
+推荐把图片直接放在文章文件旁边，并使用相对路径：
 
 ```text
-├── src/
-│   ├── components/    # 独立的可复用 UI 组件 (如 Navbar, SEO, TOC, Search)
-│   ├── content/       # 内容集合配置与 Markdown 存放处
-│   ├── layouts/       # 页面基础布局 (BaseLayout)
-│   ├── pages/         # 路由页面 (Home, Blog 列表, Tags 分类, RSS)
-│   ├── styles/        # 全局样式文件
-│   └── env.d.ts       # TypeScript 类型声明
-├── astro.config.mjs   # Astro 核心配置文件
-└── tsconfig.json      # TypeScript 配置
+src/content/blog/
+  hello-world.md
+  hello-cover.png
 ```
 
-### 1. 修改站点基础信息
-
-在 `astro.config.mjs` 中修改 `site` 属性为你自己的域名：
-
-```javascript
-export default defineConfig({
-  site: 'https://你的域名.com', // 必须修改，用于生成 Sitemap 和 RSS
-  // ...
-});
+```md
+image: "./hello-cover.png"
 ```
 
-### 2. 修改主页内容
+如果文章在子目录中，也一样按文章文件的相对路径写：
 
-主页的内容位于 `src/pages/index.astro`  
-可以修改 `<section class="intro">` 和 `<section class="links">` 中的 HTML 内容来更新你的自我介绍和友情链接
-
-### 3. 全局样式
-
-所有的全局变量和样式都定义在 `src/styles/global.css` 中。你可以轻松修改配色方案、字体大小和最大宽度：
-
-```css
-:root {
-  --font-base: 'Courier New', Courier, monospace, sans-serif; /* 正文字体 */
-  --font-code: 'Maple Mono', 'Courier New', Courier, monospace, sans-serif; /* 代码块字体 */
-  --color-bg: #ffffff;      /* 亮色模式背景 */
-  --color-text: #000000;    /* 亮色模式文字 */
-  /* ... */
-}
-
-html[data-theme='dark'] {
-  --color-bg: #121212;      /* 暗色模式背景 */
-  --color-text: #e0e0e0;    /* 暗色模式文字 */
-  /* ... */
-}
+```text
+src/content/blog/travel/
+  japan.md
+  japan-cover.png
 ```
 
-### 4. 修改 Markdown 渲染与代码高亮主题
-
-代码高亮主题在 `astro.config.mjs` 中配置。默认使用了 GitHub 的双色主题：
-
-```javascript
-markdown: {
-  shikiConfig: {
-    themes: {
-      light: 'github-light',
-      dark: 'github-dark',
-    },
-  },
-},
+```md
+image: "./japan-cover.png"
 ```
-你可以将其修改为 Shiki 支持的任何其他主题  
 
-### 5. 调整文章 Frontmatter 结构
+### 默认分享图怎么放
 
-如果你需要在 Markdown 中添加更多的元数据（如 `description`, `coverImage` 等），你需要修改 `src/content.config.ts` 中的 Zod schema：
+`ogImage` 继续使用站点路径或完整 URL，例如：
 
-```typescript
-const blog = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/blog" }),
-  schema: z.object({
-    title: z.string(),
-    date: z.date(),
-    draft: z.boolean().default(false),
-    tags: z.array(z.string()).default([]),
-    // 在这里添加新的字段，例如：
-    // description: z.string().optional(),
-  }),
-});
+```js
+ogImage: '/og-image.png'
 ```
-修改 Schema 后，你可以在 `src/pages/blog/[id].astro` 中通过 `post.data.description` 获取并渲染它  
+
+或者：
+
+```js
+ogImage: 'https://example.com/og-image.png'
+```
+
+## 需要注意
+
+这个版本目前还没有开放这些覆盖方式：
+
+- 全局 CSS 变量覆盖
+- 组件样式覆盖
+- 页面结构覆盖
+- 使用新增 frontmatter 字段直接改写页面渲染
+
+如果要改这些部分，当前做法是 fork 主题源码后再修改。

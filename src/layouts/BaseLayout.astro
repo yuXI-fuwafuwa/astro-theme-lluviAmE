@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import SEO from '../components/SEO.astro';
 import Navbar from '../components/Navbar.astro';
 import '../styles/global.css';
+import { themeConfig } from '../runtime/lib/theme.js';
 
 interface Props {
   title?: string;
@@ -14,7 +15,7 @@ interface Props {
 const { title, description, image, article } = Astro.props;
 ---
 
-<html lang="zh-CN">
+<html lang={themeConfig.lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
@@ -41,7 +42,7 @@ const { title, description, image, article } = Astro.props;
   </head>
   <body>
     <Navbar />
-    <main class="container content-area">
+    <main class="container content-area" data-pagefind-body>
       <slot />
     </main>
     
@@ -55,7 +56,9 @@ const { title, description, image, article } = Astro.props;
 
       document.addEventListener('astro:page-load', () => {
         const btn = document.getElementById('theme-toggle');
-        if (btn) btn.addEventListener('click', toggleTheme);
+        if (btn instanceof HTMLButtonElement) {
+          btn.onclick = toggleTheme;
+        }
       });
     </script>
   </body>

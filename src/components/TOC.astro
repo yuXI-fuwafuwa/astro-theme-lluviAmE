@@ -1,6 +1,7 @@
 ---
 import type { MarkdownHeading } from 'astro';
 import TOCItem, { type TocItem } from './TOCItem.astro';
+import { themeConfig } from '../runtime/lib/theme.js';
 
 interface Props {
   headings: MarkdownHeading[];
@@ -40,7 +41,7 @@ const tocTree = buildToc(headings.filter(h => h.depth > 1));
 
 {tocTree.length > 0 && (
   <nav class="toc-container">
-    <div class="toc-title">Table of Contents</div>
+    <div class="toc-title">{themeConfig.labels.tableOfContents}</div>
     <ul class="toc-root-list">
       {tocTree.map((item) => (
         <TOCItem item={item} />

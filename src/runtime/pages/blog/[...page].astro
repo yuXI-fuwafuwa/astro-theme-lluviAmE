@@ -1,0 +1,100 @@
+---
+import type { GetStaticPathsOptions } from 'astro';
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Search from '../../../components/Search.astro';
+import { createPageTitle, getPublishedPosts, themeConfig } from '../../lib/theme.js';
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const allPosts = await getCollection('blog');
+  const publishedPosts = getPublishedPosts(allPosts);
+
+  return paginate(publishedPosts, { pageSize: themeConfig.postsPerPage });
+}
+
+interface Props {
+  page: {
+    currentPage: number;
+    lastPage: number;
+    data: CollectionEntry<'blog'>[];
+    url: {
+      prev?: string;
+      next?: string;
+    };
+  };
+}
+
+const { page } = Astro.props as Props;
+const pageTitle =
+  page.currentPage === 1
+    ? createPageTitle(themeConfig.labels.blog)
+    : createPageTitle(`${themeConfig.labels.blog} | ${themeConfig.labels.paginationPage} ${page.currentPage}`);
+---
+
+<BaseLayout title={pageTitle} description={themeConfig.description}>
+  <h1>{themeConfig.labels.blog}</h1>
+
+  <Search />
+
+  <ul class="post-list">
+    {page.data.map((post) => (
+      <li>
+        <span class="post-date">
+          {post.data.date.toISOString().slice(0, 10)}
+        </span>
+        <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="pagination">
+    {page.url.prev ? (
+      <a href={page.url.prev}>&larr; {themeConfig.labels.paginationPrev}</a>
+    ) : (
+      <span class="disabled">&larr; {themeConfig.labels.paginationPrev}</span>
+    )}
+    <span>
+      {themeConfig.labels.paginationPage} {page.currentPage} {themeConfig.labels.paginationOf} {page.lastPage}
+    </span>
+    {page.url.next ? (
+      <a href={page.url.next}>{themeConfig.labels.paginationNext} &rarr;</a>
+    ) : (
+      <span class="disabled">{themeConfig.labels.paginationNext} &rarr;</span>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .search-container {
+    margin-bottom: 2rem;
+  }
+
+  .post-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .post-list li {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .post-date {
+    font-size: 0.9rem;
+    color: var(--color-border);
+    white-space: nowrap;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 3rem;
+  }
+
+  .disabled {
+    color: var(--color-border);
+  }
+</style>

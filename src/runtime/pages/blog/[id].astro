@@ -1,15 +1,19 @@
 ---
 import { getCollection, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import TOC from '../../components/TOC.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TOC from '../../../components/TOC.astro';
+import { createPageTitle, themeConfig } from '../../lib/theme.js';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { id: post.id },
-    props: { post },
-  }));
+
+  return posts
+    .filter((post) => post.data.draft !== true)
+    .map((post) => ({
+      params: { id: post.id },
+      props: { post },
+    }));
 }
 
 interface Props {
@@ -18,11 +22,14 @@ interface Props {
 
 const { post } = Astro.props;
 const { Content, headings } = await render(post);
+const copyLabel = themeConfig.labels.copyCode;
+const copiedLabel = themeConfig.labels.copiedCode;
 ---
 
-<BaseLayout 
-  title={`${post.data.title} | LluviAmE`} 
-  description={post.data.title}
+<BaseLayout
+  title={createPageTitle(post.data.title)}
+  description={post.data.description ?? post.data.title}
+  image={post.data.image ?? themeConfig.ogImage}
   article={true}
 >
   <article class="post">
@@ -32,11 +39,11 @@ const { Content, headings } = await render(post);
         <time datetime={post.data.date.toISOString()}>
           {post.data.date.toISOString().slice(0, 10)}
         </time>
-        {post.data.tags && post.data.tags.length > 0 && (
+        {post.data.tags.length > 0 && (
           <span class="tags">
             ·
-            {post.data.tags.map(tag => (
-              <a href={`/tags/${tag}`} class="tag">#{tag}</a>
+            {post.data.tags.map((tag) => (
+              <a href={`/tags/${encodeURIComponent(tag)}/`} class="tag">#{tag}</a>
             ))}
           </span>
         )}
@@ -55,18 +62,20 @@ const { Content, headings } = await render(post);
   .post-header {
     margin-bottom: 2rem;
   }
+
   .post-meta {
     color: var(--color-border);
     font-size: 0.9rem;
   }
+
   .tag {
     margin-left: 0.5rem;
   }
-  
-  /* Code block copy button styles */
+
   .copy-code-wrapper {
     position: relative;
   }
+
   .copy-code-button {
     position: absolute;
     top: 0.5rem;
@@ -81,10 +90,11 @@ const { Content, headings } = await render(post);
     opacity: 0;
     transition: opacity 0.2s;
   }
+
   .copy-code-wrapper:hover .copy-code-button {
     opacity: 1;
   }
-  
+
   .post-content pre {
     padding: 1rem;
     border-radius: 4px;
@@ -93,38 +103,42 @@ const { Content, headings } = await render(post);
   }
 </style>
 
-<script>
+<script is:inline define:vars={{ copyLabel, copiedLabel }}>
   function setupCodeCopy() {
     const blocks = document.querySelectorAll('pre');
+
     blocks.forEach((block) => {
-      // Avoid double attaching
-      const parent = block.parentNode as HTMLElement | null;
-      if (parent?.classList.contains('copy-code-wrapper')) return;
+      const parent = block.parentNode;
+      if (parent instanceof HTMLElement && parent.classList.contains('copy-code-wrapper')) {
+        return;
+      }
+
+      if (!(parent instanceof HTMLElement)) return;
 
       const wrapper = document.createElement('div');
       wrapper.className = 'copy-code-wrapper';
-      parent?.insertBefore(wrapper, block);
+      parent.insertBefore(wrapper, block);
       wrapper.appendChild(block);
 
       const button = document.createElement('button');
       button.className = 'copy-code-button';
-      button.innerText = 'COPY';
-      
+      button.innerText = copyLabel;
+
       button.addEventListener('click', async () => {
         const code = block.querySelector('code');
         if (!code) return;
-        
+
         try {
           await navigator.clipboard.writeText(code.innerText);
-          button.innerText = 'COPIED!';
+          button.innerText = copiedLabel;
           setTimeout(() => {
-            button.innerText = 'COPY';
+            button.innerText = copyLabel;
           }, 2000);
-        } catch (err) {
-          console.error('Failed to copy', err);
+        } catch (error) {
+          console.error('Failed to copy', error);
         }
       });
-      
+
       wrapper.appendChild(button);
     });
   }

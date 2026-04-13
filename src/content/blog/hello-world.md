@@ -1,8 +1,10 @@
 ---
 title: "Hello World in LluviAmE"
+description: "示例文章，展示如何让图片和文章文件一起放在内容仓库中。"
 date: 2026-04-12
 tags: ["hello", "astro", "lluviame"]
 draft: false
+image: "./hello-cover.svg"
 ---
 
 # 欢迎使用 LluviAmE 主题

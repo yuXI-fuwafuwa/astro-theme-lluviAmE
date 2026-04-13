@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { createPageTitle, getPublishedPosts, themeConfig } from '../../lib/theme.js';
+
+const allPosts = await getCollection('blog');
+const uniqueTags = [...new Set(
+  getPublishedPosts(allPosts).flatMap((post: CollectionEntry<'blog'>) => post.data.tags),
+)];
+---
+
+<BaseLayout title={createPageTitle(themeConfig.labels.tagsHeading)} description={themeConfig.description}>
+  <h1>{themeConfig.labels.tagsHeading}</h1>
+  <div class="tags-container">
+    {uniqueTags.map((tag) => (
+      <a href={`/tags/${encodeURIComponent(tag)}/`} class="tag-link">#{tag}</a>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .tag-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+
+  .tag-link:hover {
+    background-color: var(--color-border);
+  }
+</style>

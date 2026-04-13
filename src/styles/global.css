@@ -1,8 +1,6 @@
 /* src/styles/global.css */
 
-/* 引入全局字体 Maple Mono NF CN */
-/* @import url('https://unpkg.com/@chinese-fonts/maple-mono-cn/dist/MapleMono-NF-CN/results.css');
-/* maple-mono-latin-400-normal */
+/* Remote fallback for Maple Mono */
 @font-face {
   font-family: 'Maple Mono';
   font-style: normal;

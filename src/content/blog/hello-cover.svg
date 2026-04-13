@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Hello World cover</title>
+  <desc id="desc">A simple sample cover image for the demo post.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f5f7fa" />
+      <stop offset="100%" stop-color="#d7e1ec" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect x="96" y="96" width="1008" height="438" rx="28" fill="#ffffff" stroke="#cccccc" stroke-width="4" />
+  <text x="140" y="250" font-family="Courier New, monospace" font-size="72" fill="#111111">Hello, LluviAmE.</text>
+  <text x="140" y="340" font-family="Courier New, monospace" font-size="32" fill="#555555">Sample content-cover image stored next to the post file.</text>
+</svg>
