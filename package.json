@@ -1,6 +1,6 @@
 {
   "name": "astro-theme-lluviame",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A minimalist Astro blog theme packaged as an installable integration.",
   "type": "module",
   "exports": {
