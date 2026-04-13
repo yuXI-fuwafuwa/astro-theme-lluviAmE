@@ -1,6 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import sitemap from '@astrojs/sitemap';
 import * as pagefind from 'pagefind';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 const defaultThemeOptions = {
   title: 'LluviAmE',
@@ -61,22 +63,34 @@ function mergeThemeOptions(options = {}) {
   };
 }
 
+function appendPlugin(plugins = [], plugin) {
+  return plugins.includes(plugin) ? plugins : [...plugins, plugin];
+}
+
 export default function lluviame(options = {}) {
   const themeOptions = mergeThemeOptions(options);
 
   return {
     name: 'astro-theme-lluviame',
     hooks: {
-      'astro:config:setup': ({ injectRoute, updateConfig }) => {
+      'astro:config:setup': ({ config, injectRoute, updateConfig }) => {
         for (const [pattern, entrypoint] of injectedRoutes) {
           injectRoute({ pattern, entrypoint });
         }
 
+        const markdownConfig = config.markdown ?? {};
+        const shikiConfig = markdownConfig.shikiConfig ?? {};
+
         updateConfig({
           integrations: [sitemap()],
           markdown: {
+            ...markdownConfig,
+            remarkPlugins: appendPlugin(markdownConfig.remarkPlugins, remarkMath),
+            rehypePlugins: appendPlugin(markdownConfig.rehypePlugins, rehypeKatex),
             shikiConfig: {
+              ...shikiConfig,
               themes: {
+                ...(shikiConfig.themes ?? {}),
                 light: 'github-light',
                 dark: 'github-dark',
               },
